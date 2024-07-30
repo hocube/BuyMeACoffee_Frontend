@@ -1,10 +1,15 @@
-import "@/styles/globals.css";
-import { Web3OnboardProvider, init } from '@web3-onboard/react'
 // import coinbaseWalletModule from "@web3-onboard/coinbase";
 // import walletConnectModule from "@web3-onboard/walletconnect";
-import injectedModule from "@web3-onboard/injected-wallets"; // 메타마스크 연결을 위한 라이브러리
 // const coinbaseWalletSdk = coinbaseWalletModule();
 // const walletConnect = walletConnectModule();
+
+import "@/styles/globals.css";
+// Web3Onboard는 dApp 개발자가 여러 가지 지갑 연결을 쉽게 설정하고 관리할 수 있도록 도와주는 라이브러리
+// Web3OnboardProvider는 Web3Onboard 라이브러리 내에서 제공되는 기능.
+import { Web3OnboardProvider, init } from '@web3-onboard/react'
+
+// 메타마스크 연결을 위한 라이브러리
+import injectedModule from "@web3-onboard/injected-wallets"; 
 
 const injected = injectedModule();
 const modules = [injected];
@@ -54,8 +59,8 @@ const KLAYTN_BAOBAB_URL = `https://klaytn-baobab-rpc.allthatnode.com:8551/1d3223
   })
 export default function App({ Component, pageProps }) {
   return (
-    // Web3Onboar는 지갑하고 연결을 도와주는 라이브러리
-    // Web3Onboar의 기능을 쓸 수 있게끔 감싸주면 밑에 애들이 쓸 수 있다.
+    // Web3Onboar의 기능을 쓸 수 있게끔 Web3OnboardProvider로 감싸주서
+    // 애플리케이션 내의 모든 컴포넌트가 Web3Onboard 설정과 기능을 사용할 수 있도록 한다.
     <Web3OnboardProvider web3Onboard={web3Onboard}>
       {/* index.js 실행 */}
       <Component {...pageProps} /> 

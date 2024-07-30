@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+// 지갑 연결 상태를 쉽게 관리하고, 지갑을 연결하거나 해제할 수 있다.
 import { useConnectWallet } from '@web3-onboard/react' // app.js에서 세팅한 내용들을 사용하기 위해 import
 import abi from "../utils/BuyMeACoffee.json"
 import { ethers } from "ethers";
@@ -8,10 +9,13 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [coffee, setGetCoffee] = useState([]);
   const [coffeeContract, setCoffeeContract] = useState();
+  // 지갑 연결 상태와 연결/해제 기능을 위한 상태 변수
   const [{ wallet, connecting }, connect, disconnect] = useConnectWallet();
   const contractAddress = "0x2E1EC460bFec17a88E17e1AAB1216ed802E2A874";
   const contractABI = abi.abi;
 
+  // 커피 트랜잭션 가져오기 함수
+  // 현재 계약 주소(contractAddress)에 저장된 커피 트랜잭션들을 조회하는 기능
   const getCoffee = async () => {
     try {
        console.log("getting coffee Id")
@@ -24,6 +28,9 @@ export default function Home() {
     }
   };
 
+  // 지갑 연결 시 스마트 계약 설정
+  // 지갑이 연결되면 ethers를 사용하여 스마트 계약과 연결.
+  // 이 과정을 위해 ethersProvider와 signer를 사용.
   useEffect(() => {
     let ethersProvider
     if (wallet) {
@@ -33,10 +40,10 @@ export default function Home() {
     
     if (ethersProvider) {
       try {
+        // ethers 라이브러리의 기능을 사용해서 Contract와 연결한다.
         const getCoffeContract = async () => {
           const signer =  await ethersProvider.getSigner();
     
-          // ethers 라이브러리의 기능을 사용해서 Contract와 연결한다.
           // 이 Contract를 연결하려면 contract주소와, ABI와 지갑주인의 signer가 필요하다.
           const buyMeACoffee = new ethers.Contract(contractAddress, contractABI, signer);
     
@@ -48,6 +55,11 @@ export default function Home() {
       }
     }
   }, [wallet])
+
+
+  // 새 커피 트랜잭션 이벤트 리스너
+  // 새로운 커피 트랜잭션이 발생할 때마다 상태를 업데이트
+  // 이벤트 리스너를 설정하여 스마트 계약의 NewCoffee 이벤트를 수신
   useEffect(() => {
     const onNewCoffee = (from, timestamp, name, message) => {
       console.log("Coffee received: ", from, timestamp, name, message);
@@ -68,12 +80,20 @@ export default function Home() {
         console.log("provider not initialized yet");
       }
   }, [wallet, coffeeContract])
+
+
+  // 사용자가 입력 필드에 입력한 값을 상태 변수에 저장
   const onNameChange = (event) => {
     setName(event.target.value);
   }
   const onMessageChange = (event) => {
     setMessage(event.target.value);
   }
+
+
+  // 커피 구매 함수
+  // 사용자가 커피를 구매할 때 스마트 계약의 buyCoffee 함수를 호출.
+  // 트랜잭션이 완료되면 입력 필드를 초기화하고 최신 커피 트랜잭션을 가져온다.
   const buyCoffee = async (e) => {
     e.preventDefault();
     try {
@@ -128,7 +148,7 @@ export default function Home() {
                 {wallet && (coffee.map((coff, id) => {
                       return (
                         <div key={id} className=" border-solid border-2 border-white p-5 w-auto rounded-2xl mb-3">
-                          <p className=" text-white font-bold">"{coff.message}"</p>
+                          <p className=" text-white font-bold">&quot;{coff.message}&quot;</p>
                           <p className=" text-white">From: {coff.name} at {`${new Date(coff.timestamp.toString() * 1000)}`}</p>
                         </div>
                       )
