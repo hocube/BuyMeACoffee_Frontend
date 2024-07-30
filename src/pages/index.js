@@ -54,7 +54,7 @@ export default function Home() {
         console.log(error);
       }
     }
-  }, [wallet])
+  }, [wallet, contractABI])
 
 
   // 새 커피 트랜잭션 이벤트 리스너
@@ -79,7 +79,7 @@ export default function Home() {
       } else {
         console.log("provider not initialized yet");
       }
-  }, [wallet, coffeeContract])
+  }, [wallet, coffeeContract, getCoffee]);
 
 
   // 사용자가 입력 필드에 입력한 값을 상태 변수에 저장
