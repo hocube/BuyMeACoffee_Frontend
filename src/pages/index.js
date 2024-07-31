@@ -168,7 +168,7 @@ export default function Home() {
       <div className="flex flex-col justify-center items-center w-full pt-10">
         <div className="flex flex-col justify-center items-center text-center">
           <h1 className="text-white text-xl p-5">
-            Buy Me A Cofee는
+            Buy Me A Coffee는
             <br />
             Klaytn Baobab Network
             <br />
