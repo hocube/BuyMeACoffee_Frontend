@@ -13,7 +13,7 @@ export default function Home() {
   const ownerAddress = "0x9520E660BeD40D191e1c4A0AF772bf7eE480e90F";
   // 지갑 연결 상태와 연결/해제 기능을 위한 상태 변수
   const [{ wallet, connecting }, connect, disconnect] = useConnectWallet();
-  const contractAddress = "0x2e1ec460bfec17a88e17e1aab1216ed802e2a874";
+  const contractAddress = "0x2e1ec460bfec17a88e17e1aab1216ed802e2a874".toLowerCase();
   const contractABI = abi.abi;
 
   // 커피 트랜잭션 가져오기 함수
@@ -124,40 +124,41 @@ export default function Home() {
   // 팁 인출 함수
   const withdrawTips = async () => {
     try {
-      if (!wallet && !coffeeContract) return;
-      const signerAddress = await wallet.accounts[0].address;
+      if (!wallet || !coffeeContract) return;
+      const signerAddress = wallet.accounts[0].address;
       if (signerAddress.toLowerCase() !== ownerAddress.toLowerCase()) {
         alert("소유자만 사용 가능합니다");
         return;
       }
+  
       // 인출 전 잔액 가져오기
       const provider = new ethers.BrowserProvider(wallet.provider);
       const ownerBalanceBefore = await provider.getBalance(ownerAddress);
       const contractBalanceBefore = await provider.getBalance(contractAddress);
-
+  
       // 잔액이 제대로 조회되는지 확인
       console.log('Owner balance before:', ownerBalanceBefore);
       console.log('Contract balance before:', contractBalanceBefore);
-
+  
       // 팁 인출 트랜잭션
       const withdrawTxn = await coffeeContract.withdrawCoffeTips();
       await withdrawTxn.wait();
-
+  
       // 인출 후 잔액 가져오기
       const ownerBalanceAfter = await provider.getBalance(ownerAddress);
       const contractBalanceAfter = await provider.getBalance(contractAddress);
-
+  
       // 잔액이 제대로 조회되는지 확인
       console.log('Owner balance after:', ownerBalanceAfter);
       console.log('Contract balance after:', contractBalanceAfter);
-
+  
       // 알림창에 잔액 표시
       alert(`팁이 성공적으로 인출되었습니다.\n
-        인출 전 소유자 잔액: ${ethers.formatEther(ownerBalanceBefore)} KLAY\n
-        인출 전 계약 잔액: ${ethers.formatEther(contractBalanceBefore)} KLAY\n
-        인출 후 소유자 잔액: ${ethers.formatEther(ownerBalanceAfter)} KLAY`);
-      
-      }catch (error) {
+        인출 전 소유자 잔액: ${ethers.utils.formatEther(ownerBalanceBefore)} KLAY\n
+        인출 전 계약 잔액: ${ethers.utils.formatEther(contractBalanceBefore)} KLAY\n
+        인출 후 소유자 잔액: ${ethers.utils.formatEther(ownerBalanceAfter)} KLAY`); 
+  
+    } catch (error) {
       console.log(error);
       alert("인출 중 오류가 발생했습니다");
     }
