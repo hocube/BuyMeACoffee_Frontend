@@ -64,7 +64,7 @@ export default function Home() {
   // 이벤트 리스너를 설정하여 스마트 계약의 NewCoffee 이벤트를 수신
   useEffect(() => {
     const onNewCoffee = (from, timestamp, name, message) => {
-      console.log("Coffee received: ", from, timestamp, name, message);
+      console.log("새 커피 트랜잭션: ", from, timestamp, name, message);
       setGetCoffee((prevState) => [
         ...prevState,
         {
@@ -100,15 +100,15 @@ export default function Home() {
     e.preventDefault();
     try {
       if (!wallet && !coffeeContract) {
-        console.log("provider not initialized yet");
+        console.log("provider가 초기화되지 않았습니다.");
         return;
       }
-        console.log("buying coffee..")
+        console.log("커피 구매 중...")
         const coffeeTxn = await coffeeContract.buyCoffee(name, message, {value: ethers.parseEther("1.0")});
         const coffeTx =  await coffeeTxn.wait();
         
         console.log("mined ", coffeTx.hash);
-        console.log("coffee sent!");
+        console.log("커피 전송 완료!");
         
         e.target.inputName.value = "";
         e.target.inputAmount.value = "";
@@ -121,51 +121,56 @@ export default function Home() {
     }
   };
 
+  // 알럿창 출력 단위 수정
+  const formatBigNumberToKlay = (bigNumber) => {
+    const klay = parseFloat(bigNumber.toString()) / 1e18;
+    return klay.toFixed(3);
+  };
+
   // 팁 인출 함수
   const withdrawTips = async () => {
     try {
       if (!wallet || !coffeeContract) return;
       const signerAddress = wallet.accounts[0].address;
       if (signerAddress.toLowerCase() !== ownerAddress.toLowerCase()) {
-        alert("소유자만 사용 가능합니다");
+        alert("소유자만 사용 가능합니다.");
         return;
       }
-  
+
       // 인출 전 잔액 가져오기
       const provider = new ethers.BrowserProvider(wallet.provider);
       const ownerBalanceBefore = await provider.getBalance(ownerAddress);
       const contractBalanceBefore = await provider.getBalance(contractAddress);
-  
+
       // 잔액이 제대로 조회되는지 확인
-      console.log('Owner balance before:', ownerBalanceBefore);
-      console.log('Contract balance before:', contractBalanceBefore);
-  
+      console.log('인출 전 소유자 잔액:', ownerBalanceBefore.toString());
+      console.log('인출 전 계약 잔액:', contractBalanceBefore.toString());
+
       // 팁 인출 트랜잭션
       const withdrawTxn = await coffeeContract.withdrawCoffeTips();
       await withdrawTxn.wait();
-  
+
       // 인출 후 잔액 가져오기
       const ownerBalanceAfter = await provider.getBalance(ownerAddress);
       const contractBalanceAfter = await provider.getBalance(contractAddress);
-  
+
       // 잔액이 제대로 조회되는지 확인
-      console.log('Owner balance after:', ownerBalanceAfter);
-      console.log('Contract balance after:', contractBalanceAfter);
-  
+      console.log('인출 후 소유자 잔액:', ownerBalanceAfter.toString());
+      console.log('인출 후 계약 잔액:', contractBalanceAfter.toString());
+
       // 알림창에 잔액 표시
       alert(`팁이 성공적으로 인출되었습니다.\n
-        인출 전 소유자 잔액: ${ethers.utils.formatEther(ownerBalanceBefore)} KLAY\n
-        인출 전 계약 잔액: ${ethers.utils.formatEther(contractBalanceBefore)} KLAY\n
-        인출 후 소유자 잔액: ${ethers.utils.formatEther(ownerBalanceAfter)} KLAY`); 
-  
+        인출 전 소유자 잔액: ${formatBigNumberToKlay(ownerBalanceBefore)} KLAY\n
+        인출 전 계약 잔액: ${formatBigNumberToKlay(contractBalanceBefore)} KLAY\n
+        인출 후 소유자 잔액: ${formatBigNumberToKlay(ownerBalanceAfter)} KLAY`);
     } catch (error) {
       console.log(error);
-      alert("인출 중 오류가 발생했습니다");
+      alert("인출 중 오류가 발생했습니다.");
     }
   };
 
   return (
-     <main className='coffeeMain max-w-8xl min-h-[100vh] p-10 bg-black mt-0 shadow-2xl m-auto flex flex-col justify-center items-center bg-[url("https://static.vecteezy.com/system/resources/previews/001/330/185/original/coffee-cup-on-hand-drawn-doodle-background-free-vector.jpg")]'>
+    <main className='coffeeMain max-w-8xl min-h-[100vh] p-10 bg-black mt-0 shadow-2xl m-auto flex flex-col justify-center items-center bg-fixed bg-cover bg-center bg-[url("/background.jpg")]'>
         {wallet && (
           <button 
             onClick={withdrawTips} 
