@@ -15,22 +15,22 @@ export default async function handler(req, res) {
         const response = await fetch(webhookURL, {
             method: "POST",
             headers: {
-                "Content-Type":"application/json",
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                content: notifyMsg,
+              content: notifyMsg,
             }),
-        });
-
-        if (response.ok){
-            res.status(200).json({success: true});
-        }else{
+          });
+      
+          if (response.ok) {
+            res.status(200).json({ success: true });
+          } else {
             res
-                .status(500)
-                .json({success: false, error: "Failed to send message to Discord"});
+              .status(500)
+              .json({ success: false, error: "Failed to send message to Discord" });
+          }
+        } else {
+          res.status(405).json({ message: "Only POST requests are allowed" });
         }
-    } else {
-        res.status(405).json({message: "Only POST requests are allowed"});
-    }
-  }
+      }
  

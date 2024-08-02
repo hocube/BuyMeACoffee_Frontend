@@ -95,16 +95,16 @@ export default function Home() {
         value: ethers.parseEther("1.0"),
       });
       const coffeTx = await coffeeTxn.wait();
-
+  
       console.log("mined ", coffeTx.hash);
       console.log("커피 전송 완료!");
-
+  
       const notifyMsg = `새로운 커피가 구매되었습니다.\n${name}님의 메시지: ${message}`;
       sendNotification(notifyMsg);
-
+  
       e.target.inputName.value = "";
       e.target.inputAmount.value = "";
-
+  
       setName("");
       setMessage("");
       await getCoffee();
@@ -114,15 +114,15 @@ export default function Home() {
   };
 
   // 디스코드 webhook으로 메시지 전송
-  const sendNotification = async(notifyMsg) => {
+  const sendNotification = async (notifyMsg) => {
     const response = await fetch("/api/notify", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({notifyMsg}),
+      body: JSON.stringify({ notifyMsg }),
     });
-
+  
     const data = await response.json();
     if (data.success) {
       console.log("Notification sent!");
@@ -130,7 +130,7 @@ export default function Home() {
       console.log("Failed to send notification");
     }
   };
-
+  
   const formatBigNumberToKlay = (bigNumber) => {
     const klay = parseFloat(bigNumber.toString()) / 1e18;
     return klay.toFixed(3);
