@@ -41,10 +41,10 @@ const KLAYTN_BAOBAB_URL = "https://public-en-baobab.klaytn.net";
       },
     ],
     appMetadata: {
-      name: "Klaytn-web3-onboard-App", // change to your dApp name
+      name: "BUY ME A COFFEE", // change to your dApp name
     // icon: "paste your icon url",  // <-이거 지우면 로고 엑박뜨는거 해결
     // logo: "paste your logo url", // <-이거 지우면 로고 엑박뜨는거 해결
-      description: "Web3Onboard-Klaytn",
+      description: "BuyMeACoffee는 Klaytn Baobab Network 기반의 DApp으로, 사용자가 커피를 구매하고 메시지를 남길 수 있으며, 소유자는 기부금을 인출할 수 있습니다. 또한, 새 커피 구매 시 디스코드 알림을 보냅니다.",
       recommendedInjectedWallets: [
         { name: "MetaMask", url: "https://metamask.io" },
       ]
