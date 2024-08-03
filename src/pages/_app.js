@@ -1,8 +1,3 @@
-// import coinbaseWalletModule from "@web3-onboard/coinbase";
-// import walletConnectModule from "@web3-onboard/walletconnect";
-// const coinbaseWalletSdk = coinbaseWalletModule();
-// const walletConnect = walletConnectModule();
-
 import "@/styles/globals.css";
 // Web3Onboard는 dApp 개발자가 여러 가지 지갑 연결을 쉽게 설정하고 관리할 수 있도록 도와주는 라이브러리
 // Web3OnboardProvider는 Web3Onboard 라이브러리 내에서 제공되는 기능.
@@ -16,7 +11,7 @@ const walletConnect = walletConnectModule({
   projectId: '832580820193ff6bae62a15dc0feff03',
   version: 2,
   dappUrl: 'https://buymeacoffee-wheat.vercel.app/',
-  requiredChains: [1],
+  requiredChains: [1001],
 });
 const injected = injectedModule();
 
