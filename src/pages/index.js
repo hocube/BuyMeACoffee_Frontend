@@ -12,7 +12,6 @@ export default function Home() {
 
   const OWNER_ADDRESS = "0x9520E660BeD40D191e1c4A0AF772bf7eE480e90F";
   const CONTRACT_ADDRESS = "0x2e1ec460bfec17a88e17e1aab1216ed802e2a874";
-
   const CONTRACT_ABI = abi.abi;
 
   const getCoffee = useCallback(async () => {
@@ -20,11 +19,26 @@ export default function Home() {
       if (coffeeContract) {
         console.log("getting coffee Id");
         const coffeeId = await coffeeContract.coffeeId();
-        console.log(coffeeId.toString());
+        console.log("Coffee ID: ", coffeeId.toString());
         const getCoffee = await coffeeContract.getAllCoffee(
           coffeeId.toString()
         );
-        setGetCoffee(getCoffee);
+        // console.log("Raw coffee data: ", getCoffee);
+
+        const coffeeWithBigIntTimestamps = getCoffee.map((coffee) => ({
+          address: coffee[0],
+          name: coffee[1],
+          timestamp: BigInt(coffee[2].toString()),
+          message: coffee[3],
+        }));
+
+        // 데이터 최신순으로 정렬
+        const sortedCoffee = coffeeWithBigIntTimestamps.sort((a, b) => {
+          return a.timestamp > b.timestamp ? -1 : 1;
+        });
+
+        // console.log("Sorted coffee: ", sortedCoffee);
+        setGetCoffee(sortedCoffee);
       }
     } catch (error) {
       console.log(error);
@@ -58,22 +72,39 @@ export default function Home() {
   useEffect(() => {
     const onNewCoffee = (from, timestamp, name, message) => {
       console.log("새 커피 트랜잭션: ", from, timestamp, name, message);
-      setGetCoffee((prevState) => [
-        ...prevState,
-        {
-          address: from,
-          timestamp: new Date(timestamp * 1000),
-          message,
-          name,
-        },
-      ]);
+      setGetCoffee((prevState) => {
+        const newCoffee = [
+          ...prevState,
+          {
+            address: from,
+            timestamp: BigInt(timestamp.toString()), // BigInt로 변환
+            message,
+            name,
+          },
+        ];
+
+        // 새로운 데이터 포함하여 정렬
+        const sortedNewCoffee = newCoffee.sort((a, b) => {
+          return a.timestamp > b.timestamp ? -1 : 1;
+        });
+
+        console.log("Sorted new coffee: ", sortedNewCoffee);
+        return sortedNewCoffee;
+      });
     };
+
     if (wallet && coffeeContract) {
       getCoffee();
       coffeeContract.on("NewCoffee", onNewCoffee);
     } else {
       console.log("provider not initialized yet");
     }
+
+    return () => {
+      if (coffeeContract) {
+        coffeeContract.off("NewCoffee", onNewCoffee);
+      }
+    };
   }, [wallet, coffeeContract, getCoffee]);
 
   const onNameChange = (event) => {
@@ -95,16 +126,16 @@ export default function Home() {
         value: ethers.parseEther("1.0"),
       });
       const coffeTx = await coffeeTxn.wait();
-  
+
       console.log("mined ", coffeTx.hash);
       console.log("커피 전송 완료!");
-  
+
       const notifyMsg = `새로운 커피가 구매되었습니다.\n${name}님의 메시지: ${message}`;
       sendNotification(notifyMsg);
-  
+
       e.target.inputName.value = "";
       e.target.inputAmount.value = "";
-  
+
       setName("");
       setMessage("");
       await getCoffee();
@@ -113,24 +144,6 @@ export default function Home() {
     }
   };
 
-  // 디스코드 webhook으로 메시지 전송
-  const sendNotification = async (notifyMsg) => {
-    const response = await fetch("/api/notify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ notifyMsg }),
-    });
-  
-    const data = await response.json();
-    if (data.success) {
-      console.log("Notification sent!");
-    } else {
-      console.log("Failed to send notification");
-    }
-  };
-  
   const formatBigNumberToKlay = (bigNumber) => {
     const klay = parseFloat(bigNumber.toString()) / 1e18;
     return klay.toFixed(3);
@@ -173,8 +186,26 @@ export default function Home() {
     }
   };
 
+  // discord webhook으로 메시지 전송
+  const sendNotification = async (notifyMsg) => {
+    const response = await fetch("/api/notify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ notifyMsg }),
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      console.log("Notification sent!");
+    } else {
+      console.log("Failed to send notification");
+    }
+  };
+
   return (
-    <main className="min-h-screen p-5 bg-black flex flex-col justify-center items-center bg-fixed bg-cover bg-center">
+    <main className="min-h-dvh p-5 bg-black flex flex-col justify-center items-center bg-fixed bg-cover bg-center">
       <nav className="w-full flex justify-end">
         {wallet && (
           <button
@@ -186,7 +217,7 @@ export default function Home() {
         )}
       </nav>
 
-      <div className="flex flex-col justify-center items-center w-full pt-10">
+      <div className="flex flex-col justify-center items-center w-full pt-8">
         <div className="flex flex-col justify-center items-center text-center">
           <h1 className="text-white text-xl p-5">
             Buy Me A Coffee는
@@ -239,7 +270,7 @@ export default function Home() {
               <h1 className="text-white text-2xl">Coffee Transaction</h1>
             </div>
           )}
-          <div className="flex flex-col gap-5 w-full max-w-md mb-10">
+          <div className="flex flex-col gap-5 w-full max-w-md mb-10 max-h-dvh overflow-y-scroll">
             {wallet &&
               coffee.map((coff, id) => (
                 <div
@@ -249,18 +280,19 @@ export default function Home() {
                   <p className="text-white font-bold">{coff.message}</p>
                   <p className="text-white">
                     From: {coff.name} at{" "}
-                    {`${new Date(
-                      coff.timestamp.toString() * 1000
-                    ).toLocaleString("en-US", {
-                      weekday: "short",
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                      hour12: false,
-                    })}`}
+                    {`${new Date(Number(coff.timestamp) * 1000).toLocaleString(
+                      "en-US",
+                      {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: false,
+                      }
+                    )}`}
                   </p>
                 </div>
               ))}
