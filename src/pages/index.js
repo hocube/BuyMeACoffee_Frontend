@@ -14,6 +14,7 @@ export default function Home() {
   const CONTRACT_ADDRESS = "0x2e1ec460bfec17a88e17e1aab1216ed802e2a874";
   const CONTRACT_ABI = abi.abi;
 
+  // 커피 트랜잭션 데이터 가져오기
   const getCoffee = useCallback(async () => {
     try {
       if (coffeeContract) {
@@ -23,8 +24,8 @@ export default function Home() {
         const getCoffee = await coffeeContract.getAllCoffee(
           coffeeId.toString()
         );
-        // console.log("Raw coffee data: ", getCoffee);
-
+        
+        // 커피 데이터 가공
         const coffeeWithBigIntTimestamps = getCoffee.map((coffee) => ({
           address: coffee[0],
           name: coffee[1],
@@ -37,7 +38,6 @@ export default function Home() {
           return a.timestamp > b.timestamp ? -1 : 1;
         });
 
-        // console.log("Sorted coffee: ", sortedCoffee);
         setGetCoffee(sortedCoffee);
       }
     } catch (error) {
@@ -45,12 +45,18 @@ export default function Home() {
     }
   }, [coffeeContract]);
 
+  // BuyMeACoffee Contract 연결하는 곳
+
+  // 지갑의 제공자(provider)를 ethers 라이브러리의 BrowserProvider를 사용하여 
+  // ethersProvider를 설정한다.
   useEffect(() => {
     let ethersProvider;
     if (wallet) {
       ethersProvider = new ethers.BrowserProvider(wallet.provider, "any");
     }
 
+    // ethersProvider를 사용하여 스마트 계약과 연결하고, 
+    // 새로운 커피 트랜잭션이 발생할 때마다 상태를 업데이트
     if (ethersProvider) {
       try {
         const getCoffeContract = async () => {
@@ -69,6 +75,7 @@ export default function Home() {
     }
   }, [wallet, CONTRACT_ABI]);
 
+  // 새로운 커피 트랜잭션
   useEffect(() => {
     const onNewCoffee = (from, timestamp, name, message) => {
       console.log("새 커피 트랜잭션: ", from, timestamp, name, message);
@@ -114,6 +121,7 @@ export default function Home() {
     setMessage(event.target.value);
   };
 
+  // 커피 구매 함수
   const buyCoffee = async (e) => {
     e.preventDefault();
     try {
@@ -149,6 +157,7 @@ export default function Home() {
     return klay.toFixed(3);
   };
 
+  // 팁 인출 함수
   const withdrawTips = async () => {
     try {
       if (!wallet || !coffeeContract) return;
